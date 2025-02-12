@@ -1,6 +1,6 @@
 # Web Sentry
 
-Web Sentry is a lightweight website monitoring system built with TypeScript. It periodically checks specified websites for content changes, records metrics (HTTP status, loading time, and content hash), logs events, and notifies users via email (SendGrid) and SMS (Twilio). Additionally, it persists historical change events in MongoDB and includes unit tests powered by Jest.
+Web Sentry is a lightweight website monitoring system built with TypeScript. It periodically checks specified websites for content changes, records metrics (HTTP status, loading time, and content hash), logs events, and persists historical change events in MongoDB. Additionally, it includes unit tests powered by Jest.
 
 ## Table of Contents
 
@@ -9,6 +9,7 @@ Web Sentry is a lightweight website monitoring system built with TypeScript. It 
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Docker Setup](#docker-setup)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
@@ -19,7 +20,6 @@ Web Sentry is a lightweight website monitoring system built with TypeScript. It 
 - **Scheduled Monitoring**: Periodically monitors one or more websites.
 - **Metrics Logging**: Records HTTP status, loading time, and content hash.
 - **Change Detection**: Detects when website content changes.
-- **Notifications**: Alerts users via email (SendGrid) and SMS (Twilio).
 - **Persistent Logging**: Stores monitoring state and change events in MongoDB.
 - **Unit Testing**: Implements tests using Jest to ensure reliability.
 
@@ -27,9 +27,7 @@ Web Sentry is a lightweight website monitoring system built with TypeScript. It 
 
 - Node.js (v14 or later recommended)
 - npm
-- A MongoDB instance (local or cloud)
-- SendGrid API key
-- Twilio credentials (Account SID and Auth Token)
+- Docker (for running MongoDB)
 
 ## Installation
 
@@ -56,15 +54,54 @@ Web Sentry is a lightweight website monitoring system built with TypeScript. It 
 
 2. Update the `.env` file:
    - `URLS`
+   - `SCHEDULE_INTERVAL`
    - `MONGODB_URI`
    - `MONGODB_DB`
-   - `SENDGRID_API_KEY`
-   - `SEND_GRID_SENDER`
+   - `SMTP_HOST`
+   - `SMTP_PORT`
+   - `SMTP_USER`
+   - `SMTP_PASS`
    - `EMAIL_RECIPIENTS`
-   - `TWILIO_ACCOUNT_SID`
-   - `TWILIO_AUTH_TOKEN`
-   - `TWILIO_FROM`
-   - `TWILIO_TO`
+
+## Docker Setup
+
+To run MongoDB using Docker, execute the following commands:
+
+1. Pull and run the MongoDB Docker image:
+
+   ```sh
+   docker run --name web-sentry-mongo -d -p 27017:27017 mongo
+   ```
+
+2. Check if the MongoDB container is running:
+
+   ```sh
+   docker ps
+   ```
+
+3. Connect to the running MongoDB container:
+
+   ```sh
+   docker exec -it web-sentry-mongo mongosh
+   ```
+
+## Unified Script for Running Web Sentry and Test Page
+
+A script has been provided to launch both the monitoring system and a simple HTML test page.
+
+1. Ensure Docker and Node.js are installed.
+2. Run the unified script:
+
+   ```sh
+   chmod +x run.sh
+   ./run.sh
+   ```
+
+This script will:
+
+- Start a MongoDB container if not already running.
+- Serve a basic HTML test page.
+- Run Web Sentry in development mode.
 
 ## Usage
 
@@ -80,7 +117,7 @@ Web Sentry is a lightweight website monitoring system built with TypeScript. It 
    npm start
    ```
 
-   The application will connect to MongoDB, start monitoring the configured websites, and send notifications when changes are detected.
+   The application will connect to MongoDB, start monitoring the configured websites, and log detected changes.
 
 ## Testing
 
@@ -99,18 +136,21 @@ web-sentry/
 ├── src/
 │   ├── __tests__/
 │   │   └── utils.test.ts         # Unit tests for utility functions
+│   ├── assets/
+│       ├── basic-html-page.html       # Simple HTML page for testing
 │   ├── config.ts                 # Application configuration
 │   ├── db.ts                     # Database connection and collection definitions
 │   ├── index.ts                  # Application entry point
 │   ├── monitor.ts                # Website monitoring logic
-│   ├── notifications.ts          # Notification logic (SendGrid & Twilio)
-│   └── utils.ts                  # Utility functions (e.g., hashing)
+│   ├── utils.ts                   # Utility functions (e.g., hashing)
 ├── .env                          # Environment variables
 ├── .env.example                  # Environment variables template
+├── Dockerfile                    # Dockerfile for containerizing Web Sentry
 ├── jest.config.js                # Jest configuration
 ├── package-lock.json
 ├── package.json
 ├── README.md
+├── run.sh                        # Unified script for running MongoDB, test page, and app
 └── tsconfig.json                 # TypeScript configuration
 ```
 
